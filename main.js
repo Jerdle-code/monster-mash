@@ -27,6 +27,10 @@ PlayState.preload = function() {
     this.game.load.image('spider', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f577.png');
     this.game.load.image('zombie', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f9df.png');
     this.game.load.image('ghost', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f47b.png');
+    this.game.load.image('ogre', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f479.png');
+    this.game.load.image('alien', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f47d.png');
+    this.game.load.image('goblin', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f47a.png');
+    this.game.load.image('clown', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f921.png');
     this.game.load.image('skull', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u2620.png');
     this.game.load.image('bullet', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/32/emoji_u1fa78.png');
     this.game.load.image('big_bullet', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1fa78.png');
@@ -37,7 +41,8 @@ PlayState.init = function () {
         right: Phaser.KeyCode.RIGHT,
         up: Phaser.KeyCode.UP,
         down: Phaser.KeyCode.DOWN,
-        shoot: Phaser.KeyCode.SPACEBAR
+        shoot: Phaser.KeyCode.SPACEBAR,
+        boom: Phaser.KeyCode.ENTER
     });
     this.score = 0;
 };
@@ -64,7 +69,7 @@ PlayState.create = function() {
     this._createHud();
 }
 function createSpider(){
-    var icons = ["spider", "zombie", "ghost", "skull"];
+    var icons = ["spider", "zombie", "ghost", "skull", "ogre", "goblin", "alien", "clown"];
     let rand = Math.random() * 4;
     let rem = rand % 1;
     let side = rand - rem;
@@ -128,6 +133,14 @@ PlayState._handleInput = function () {
         this.hero.weapon.fireAngle = this.hero.angle + 270;
         this.hero.weapon.fire();
         ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
+    } else if (this.keys.boom.isDown){
+        if (this.hero.weapon.fireLimit - this.hero.weapon.shots > 20){
+            this.hero.weapon.shots += 20;
+            spiders.callAllAlive('kill');;
+            this.game.stage.backgroundColor = "#f00";
+            this.game.time.events.add(500, function(){PlayState.game.stage.backgroundColor = "#000"});
+            ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
+        }
     }
 };
 PlayState._handleCollisions = function () {
