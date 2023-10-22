@@ -8,7 +8,7 @@ function Hero(game, x, y) {
 // inherit from Phaser.Sprite
 Hero.prototype = Object.create(Phaser.Sprite.prototype);
 Hero.prototype.constructor = Hero;
-Hero.prototype.move = function (direction, speed=200) {
+Hero.prototype.move = function (direction, speed=250) {
     this.body.velocity.x = direction * speed * Math.sin(this.rotation);
     this.body.velocity.y = direction * speed * -Math.cos(this.rotation);
 };
@@ -29,6 +29,7 @@ PlayState.preload = function() {
     this.game.load.image('ghost', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1f47b.png');
     this.game.load.image('skull', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u2620.png');
     this.game.load.image('bullet', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/32/emoji_u1fa78.png');
+    this.game.load.image('big_bullet', 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main/png/72/emoji_u1fa78.png');
 }
 PlayState.init = function () {
     this.keys = this.game.input.keyboard.addKeys({
@@ -41,28 +42,33 @@ PlayState.init = function () {
     this.score = 0;
 };
 var spiders;
+var scoreDisplay;
+var ammoDisplay;
 PlayState.create = function() {
     this.game.stage.backgroundColor = "#000";
     this.hero = new Hero(this.game, 960, 540);
     this.game.add.existing(this.hero);
     this.hero.rotate(Math.PI/2);
     this.hero.anchor.set(0.5, 0.5);
-    this.hero.weapon = this.game.add.weapon(5, "bullet");
+    this.hero.weapon = this.game.add.weapon(-1, "bullet");
     this.hero.weapon.trackSprite(this.hero,0,0,false);
     this.hero.weapon.bulletSpeed = 600;
     this.hero.weapon.bulletAngleOffset=90;
     this.hero.weapon.bulletInheritSpriteSpeed=true;
+    this.hero.weapon.fireLimit = 15;
     this.hero.body.setSize(48,48);
     spiders = this.game.add.group();
+    ammo = this.game.add.group();
     this.game.time.events.loop(3000, createSpider, this);
+    this.game.time.events.loop(200, addAmmo, this);
     this._createHud();
 }
 function createSpider(){
     var icons = ["spider", "zombie", "ghost", "skull"];
-    var rand = Math.random() * 4;
-    var rem = rand % 1;
-    var side = rand - rem;
-    var x, y;
+    let rand = Math.random() * 4;
+    let rem = rand % 1;
+    let side = rand - rem;
+    let x, y;
 
     switch(side){
         case 0:
@@ -84,15 +90,22 @@ function createSpider(){
     }
     var random_icon = icons[Math.floor(Math.random()*icons.length)];
     var spider = spiders.create(x, y, random_icon);
-    console.log(x);
-    console.log(y);
     this.game.physics.enable(spider);
-
 }
 PlayState.update = function() {
     this._handleCollisions();
     this._handleInput();
     spiders.forEach(this.game.physics.arcade.moveToObject, this.game.physics.arcade, true, this.hero, 100);
+}
+function addAmmo(){
+    let x, y;
+    if (Math.random() < 0.01){
+    x = (Math.random() * 1820) + 50
+    y = (Math.random() * 980) + 50
+    var ammo_drop = ammo.create(x, y, "big_bullet");
+    this.game.physics.enable(ammo_drop);
+    this.game.time.events.add(4000, function(){ammo_drop.kill()});
+    }
 }
 PlayState._handleInput = function () {
     if (this.keys.left.isDown) { // rotate anticlockwise
@@ -114,11 +127,14 @@ PlayState._handleInput = function () {
     if (this.keys.shoot.isDown){
         this.hero.weapon.fireAngle = this.hero.angle + 270;
         this.hero.weapon.fire();
+        ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
     }
 };
 PlayState._handleCollisions = function () {
     this.game.physics.arcade.overlap(this.hero, spiders,
         this._onHeroVsEnemy, null, this);
+        this.game.physics.arcade.overlap(this.hero, ammo,
+            this._onHeroVsAmmo, null, this);
         this.game.physics.arcade.overlap(this.hero.weapon.bullets, spiders,
             this._onShootEnemy, null, this);
 };
@@ -127,21 +143,31 @@ PlayState._onHeroVsEnemy = function (hero, enemy) {
     this.game.state.restart();
     this.game.time.slowMotion = 1;
 };
+PlayState._onHeroVsAmmo = function (hero, ammo) {
+    ammo.kill();
+    this.hero.weapon.fireLimit += 5;
+    ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
+};
 PlayState._onShootEnemy = function (hero, enemy) {
     enemy.kill();
     this.score++;
     if (this.score % 10 == 0){
         alert("Level " + (Math.floor(this.score/10)+1))
         this.game.time.slowMotion *= 0.8;
+        this.hero.weapon.fireLimit += 15;
+        ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
     }
+    scoreDisplay.setText(this.score);
 };
 PlayState._createHud = function () {
-    let ammo = this.game.make.image(0, 0, 'bullet');
-    let spider = this.game.make.image(50, 0, 'spider');
+    let ammo = this.game.make.image(0, 0, 'big_bullet');
+    let spider = this.game.make.image(250, 0, 'spider');
     this.hud = this.game.add.group();
     this.hud.add(ammo);
+    scoreDisplay = this.game.add.text(400, 10, "0", {fill:"#ffffff", font:"72px Courier New"});
+    ammoDisplay = this.game.add.text(150, 10, "15", {fill:"#ffffff", font:"72px Courier New"});
     this.hud.add(spider);
-    this.hud.position.set(10, 10);
+    this.hud.position.set(50, 10);
 };
 window.onload = function () {
     let game = new Phaser.Game(1920, 1080, Phaser.AUTO, 'game');
