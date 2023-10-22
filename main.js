@@ -55,6 +55,7 @@ PlayState.create = function() {
     this.hero.body.setSize(48,48);
     spiders = this.game.add.group();
     this.game.time.events.loop(3000, createSpider, this);
+    this._createHud();
 }
 function createSpider(){
     var icons = ["spider", "zombie", "ghost", "skull"];
@@ -133,6 +134,14 @@ PlayState._onShootEnemy = function (hero, enemy) {
         alert("Level " + (Math.floor(this.score/10)+1))
         this.game.time.slowMotion *= 0.8;
     }
+};
+PlayState._createHud = function () {
+    let ammo = this.game.make.image(0, 0, 'bullet');
+    let spider = this.game.make.image(50, 0, 'spider');
+    this.hud = this.game.add.group();
+    this.hud.add(ammo);
+    this.hud.add(spider);
+    this.hud.position.set(10, 10);
 };
 window.onload = function () {
     let game = new Phaser.Game(1920, 1080, Phaser.AUTO, 'game');
