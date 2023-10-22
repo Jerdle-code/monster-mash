@@ -49,6 +49,8 @@ PlayState.init = function () {
 var spiders;
 var scoreDisplay;
 var ammoDisplay;
+var levelPrefix;
+var levelDisplay;
 PlayState.create = function() {
     this.game.stage.backgroundColor = "#000";
     this.hero = new Hero(this.game, 960, 540);
@@ -134,14 +136,17 @@ PlayState._handleInput = function () {
         this.hero.weapon.fire();
         ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
     } else if (this.keys.boom.isDown){
-        if (this.hero.weapon.fireLimit - this.hero.weapon.shots > 20){
-            this.hero.weapon.shots += 20;
-            spiders.callAllAlive('kill');;
+        if (this.hero.weapon.fireLimit - this.hero.weapon.shots > 15){
+            this.hero.weapon.shots += 15;
+            spiders.forEach(killSprite, this, true);
             this.game.stage.backgroundColor = "#f00";
             this.game.time.events.add(500, function(){PlayState.game.stage.backgroundColor = "#000"});
             ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
         }
     }
+};
+function killSprite (sprite) {
+    sprite.kill();
 };
 PlayState._handleCollisions = function () {
     this.game.physics.arcade.overlap(this.hero, spiders,
@@ -165,7 +170,9 @@ PlayState._onShootEnemy = function (hero, enemy) {
     enemy.kill();
     this.score++;
     if (this.score % 10 == 0){
-        alert("Level " + (Math.floor(this.score/10)+1))
+        levelDisplay.setText(Math.floor((this.score + 10) / 10));
+        levelDisplay.setStyle({font:"80px Courier New", fill: "#0f0"})
+        this.game.time.events.add(500, function(){levelDisplay.setStyle({font:"72px Courier New", fill: "#fff"})});
         this.game.time.slowMotion *= 0.8;
         this.hero.weapon.fireLimit += 15;
         ammoDisplay.setText(this.hero.weapon.fireLimit - this.hero.weapon.shots);
@@ -179,6 +186,8 @@ PlayState._createHud = function () {
     this.hud.add(ammo);
     scoreDisplay = this.game.add.text(400, 10, "0", {fill:"#ffffff", font:"72px Courier New"});
     ammoDisplay = this.game.add.text(150, 10, "15", {fill:"#ffffff", font:"72px Courier New"});
+    levelPrefix = this.game.add.text(600, 10, "Level", {fill:"#c0c0c0", font:"72px Courier New"});
+    levelDisplay = this.game.add.text(900, 10, "1", {fill:"#ffffff", font:"72px Courier New"});
     this.hud.add(spider);
     this.hud.position.set(50, 10);
 };
