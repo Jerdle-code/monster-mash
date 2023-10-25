@@ -102,7 +102,7 @@ function createSpider(){
 PlayState.update = function() {
     this._handleCollisions();
     this._handleInput();
-    spiders.forEach(this.game.physics.arcade.moveToObject, this.game.physics.arcade, true, this.hero, 100);
+    spiders.forEach(this.game.physics.arcade.moveToObject, this.game.physics.arcade, true, this.hero, (80 + (20 * Math.random())));
 }
 function addAmmo(){
     let x, y;
