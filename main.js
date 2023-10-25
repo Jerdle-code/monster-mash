@@ -13,8 +13,8 @@ Hero.prototype.move = function (direction, speed=250) {
     this.body.velocity.y = direction * speed * -Math.cos(this.rotation);
 };
 Hero.prototype.strafe = function (direction, speed=250) {
-    this.body.velocity.x = direction * speed * -Math.cos(this.rotation);
-    this.body.velocity.y = direction * speed * -Math.sin(this.rotation);
+    this.body.velocity.x = direction * speed * Math.cos(this.rotation);
+    this.body.velocity.y = direction * speed * Math.sin(this.rotation);
 };
 Hero.prototype.rotate = function (angle){
     this.rotation += angle;
