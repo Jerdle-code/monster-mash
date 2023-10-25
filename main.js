@@ -12,6 +12,10 @@ Hero.prototype.move = function (direction, speed=250) {
     this.body.velocity.x = direction * speed * Math.sin(this.rotation);
     this.body.velocity.y = direction * speed * -Math.cos(this.rotation);
 };
+Hero.prototype.strafe = function (direction, speed=250) {
+    this.body.velocity.x = direction * speed * -Math.cos(this.rotation);
+    this.body.velocity.y = direction * speed * -Math.sin(this.rotation);
+};
 Hero.prototype.rotate = function (angle){
     this.rotation += angle;
 }
@@ -41,6 +45,12 @@ PlayState.init = function () {
         right: Phaser.KeyCode.RIGHT,
         up: Phaser.KeyCode.UP,
         down: Phaser.KeyCode.DOWN,
+        w: Phaser.KeyCode.W,
+        a: Phaser.KeyCode.A,
+        s: Phaser.KeyCode.S,
+        d: Phaser.KeyCode.D,
+        q: Phaser.KeyCode.Q,
+        e: Phaser.KeyCode.E,
         shoot: Phaser.KeyCode.SPACEBAR,
         boom: Phaser.KeyCode.ENTER
     });
@@ -115,17 +125,23 @@ function addAmmo(){
     }
 }
 PlayState._handleInput = function () {
-    if (this.keys.left.isDown) { // rotate anticlockwise
+    if (this.keys.left.isDown || this.keys.q.isDown) { // rotate anticlockwise
         this.hero.rotate(-0.075);
     }
-    else if (this.keys.right.isDown) { // rotate clockwise
+    else if (this.keys.right.isDown || this.keys.e.isDown) { // rotate clockwise
         this.hero.rotate(0.075);
     }
-    else if (this.keys.up.isDown) { // move hero forwards
+    else if (this.keys.up.isDown || this.keys.w.isDown) { // move hero forwards
         this.hero.move(1);
     }
-    else if (this.keys.down.isDown) { // move hero backwards
+    else if (this.keys.down.isDown || this.keys.s.isDown) { // move hero backwards
         this.hero.move(-1);
+    }
+    else if (this.keys.a.isDown) { // strafe "left"
+        this.hero.strafe(-1);
+    }
+    else if (this.keys.d.isDown) { // strafe "right"
+        this.hero.strafe(1);
     }
     else { //Hammertime!
         this.hero.move(0,0);
